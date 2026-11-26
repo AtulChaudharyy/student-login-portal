@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build & Test') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'mvn -B clean test'
+                    } else {
+                        bat 'mvn -B clean test'
+                    }
+                }
+            }
+        }
+        stage('Package') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'mvn -B package -DskipTests'
+                    } else {
+                        bat 'mvn -B package -DskipTests'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+        }
+    }
+}
